@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NU Cebu - Student ID Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Montserrat & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nu: {
+                            navy: '#00205B',
+                            gold: '#35529B',
+                            accentGold: '#FFC72C',
+                            blue: '#0056B3',
+                            lightBlue: '#1E73BE',
+                            cardBg: '#124191',
+                            bgGray: '#F3F5F9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif'],
+                        signature: ['Great Vibes', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F3F5F9;
+            font-family: 'Inter', sans-serif;
+        }
+        .nu-gradient-card {
+            background: linear-gradient(145deg, #002B7F 0%, #124191 55%, #001B54 100%);
+        }
+        .nu-gold-badge {
+            background: linear-gradient(135deg, #FFC72C 0%, #E5A800 100%);
+        }
+        .signature-font {
+            font-family: 'Great Vibes', cursive;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        /* Custom scrollbar for table container */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-nu-navy text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-nu-navy font-montserrat font-black rounded-lg px-2.5 py-1 text-xl tracking-tighter flex items-center border-2 border-nu-accentGold shadow-sm">
+                    NU <span class="text-xs font-semibold text-nu-gold ml-1">CEBU</span>
+                </div>
+                <div class="h-6 w-px bg-blue-800 hidden sm:block"></div>
+                <span class="text-sm font-medium tracking-wide text-blue-100 hidden sm:inline-block">
+                    National University Cebu • Student ID System
+                </span>
+            </div>
+
+            <!-- User profile right top -->
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden md:block">
+                    <p class="text-xs text-blue-200">Logged in as</p>
+                    <p class="text-sm font-semibold text-white">registrar@nu-cebu.edu.ph</p>
+                </div>
+                <div class="relative">
+                    <img class="h-10 w-10 rounded-full border-2 border-nu-accentGold object-cover shadow" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Admin Avatar" onerror="this.src='https://placehold.co/100x100/00205B/FFFFFF?text=Admin'">
+                    <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-400 ring-2 ring-white"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT COLUMN: Live Mobile Preview Card Widget -->
+            <aside class="lg:col-span-4 xl:col-span-4 space-y-4 lg:sticky lg:top-20">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-id-card text-nu-navy text-lg"></i>
+                            <h2 class="font-montserrat font-bold text-gray-800 text-base">Live Card Preview</h2>
+                        </div>
+                        <span id="preview-status-pill" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            Active
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mb-4">Click any record in the table on the right to dynamically inspect and verify its digital ID representation.</p>
+
+                    <!-- Realistic ID Card Mockup -->
+                    <div id="id-card-element" class="nu-gradient-card rounded-2xl p-5 text-white shadow-xl relative overflow-hidden transition-all duration-300 border border-blue-400/30">
+                        <!-- Card Watermark / Accent Background -->
+                        <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="absolute right-3 top-12 opacity-10 font-black text-6xl select-none">NU</div>
+
+                        <!-- Header Branding inside Card -->
+                        <div class="flex justify-between items-start mb-4 border-b border-white/15 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-nu-navy text-xs border border-nu-accentGold">
+                                    NU
+                                </div>
+                                <div>
+                                    <h3 class="font-montserrat font-extrabold text-xs tracking-wider uppercase text-white leading-tight">National University</h3>
+                                    <p class="text-[10px] text-nu-accentGold font-medium tracking-widest uppercase">CEBU CAMPUS</p>
+                                </div>
+                            </div>
+                            <div class="bg-nu-accentGold text-nu-navy px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                STUDENT
+                            </div>
+                        </div>
+
+                        <!-- Card Middle Body: Photo & Key Info -->
+                        <div class="grid grid-cols-12 gap-3 items-center mb-4">
+                            <!-- Photo Container -->
+                            <div class="col-span-5 flex flex-col items-center">
+                                <div class="relative group">
+                                    <img id="card-preview-photo" 
+                                         src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80" 
+                                         alt="Student Photo" 
+                                         class="w-24 h-28 object-cover rounded-lg border-2 border-nu-accentGold shadow-md bg-slate-800"
+                                         onerror="this.src='https://placehold.co/120x150/00205B/FFFFFF?text=Photo'">
+                                </div>
+                                <span class="text-[9px] text-blue-200 mt-1 uppercase font-semibold tracking-wider">OFFICIAL ID</span>
+                            </div>
+
+                            <!-- Front Fields Details -->
+                            <div class="col-span-7 space-y-2">
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-wider text-blue-200">Name</p>
+                                    <h4 id="card-preview-name" class="font-montserrat font-bold text-sm text-white leading-tight truncate">Juan De la Cruz</h4>
+                                </div>
+
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-wider text-blue-200">Student ID</p>
+                                    <p id="card-preview-id" class="font-mono text-xs font-semibold text-nu-accentGold tracking-wider">2025-0000001</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-wider text-blue-200">Program & Section</p>
+                                    <p id="card-preview-program" class="text-xs font-medium text-white truncate">BSCS-251</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-wider text-blue-200">Year Level</p>
+                                    <p id="card-preview-year" class="text-xs font-medium text-blue-100">2nd Year</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer: QR Code & Signature -->
+                        <div class="bg-black/20 rounded-xl p-2.5 flex items-center justify-between border border-white/10 backdrop-blur-sm">
+                            <div class="flex items-center space-x-2">
+                                <div class="bg-white p-1 rounded-md shadow-sm">
+                                    <!-- Dynamic SVG QR Code mockup -->
+                                    <svg class="w-10 h-10 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M2,2H10V10H2V2M4,4V8H8V4H4M11,2H13V4H11V2M14,2H22V10H14V2M16,4V8H20V4H16M2,14H10V22H2V14M4,16V20H8V16H4M11,11H13V13H11V11M13,13H15V15H13V13M11,15H13V17H11V15M13,17H15V19H13V17M15,11H17V13H15V11M17,13H19V15H17V13M19,11H21V13H19V11M15,15H17V17H15V15M19,15H21V17H19V15M17,17H19V19H17V17M15,19H17V21H15V19M19,19H21V21H19V19M21,17H22V19H21V17M21,13H22V15H21V13M11,19H13V22H11V19Z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-[8px] text-blue-200 uppercase">VALID UNTIL</p>
+                                    <p class="text-[10px] font-bold text-white font-mono">MAY 2026</p>
+                                </div>
+                            </div>
+
+                            <div class="text-right">
+                                <p class="text-[8px] text-blue-200 uppercase">SIGNATURE</p>
+                                <p id="card-preview-signature" class="signature-font text-base text-nu-accentGold leading-none px-1">Juan De la Cruz</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Actions Quick Bar -->
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="triggerToast('Virtual ID downloaded successfully!')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center space-x-1.5 transition">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Save ID</span>
+                        </button>
+                        <button onclick="triggerToast('ID ready for NFC tap preview.')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-nu-navy text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center space-x-1.5 transition">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span>Scan QR</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT COLUMN: Main Table & Control Dashboard -->
+            <section class="lg:col-span-8 xl:col-span-8 space-y-5">
+                
+                <!-- Main Header Title -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div>
+                        <h1 class="text-2xl font-montserrat font-bold text-slate-800">Card Data Dashboard</h1>
+                        <p class="text-xs text-slate-500 mt-1">Manage active student ID credentials, records, and digital issuing.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-nu-navy border border-blue-200">
+                            <i class="fa-solid fa-user-graduate mr-1.5"></i>
+                            <span id="total-count-badge">5 Records</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Top Toolbar: Search & Main Action Buttons -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                    <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                        <!-- Search Box -->
+                        <div class="flex flex-1 items-center space-x-2">
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Search by ID or Name..." 
+                                    class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-nu-gold focus:border-transparent transition">
+                            </div>
+                            <button onclick="handleSearch()" class="bg-nu-blue hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-sm transition flex items-center space-x-1">
+                                <span>SEARCH</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Batch Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="openAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>ADD CARD DATA</span>
+                            </button>
+                            <button onclick="triggerToast('Import Modal Ready - CSV/Excel selected')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-file-import"></i>
+                                <span>IMPORT CARD DATA</span>
+                            </button>
+                            <button onclick="bulkSendCards()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>SEND CARDS</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Rows Data Display -->
+                <div class="space-y-3" id="student-cards-container">
+                    <!-- Dynamic Rows JS rendered here -->
+                </div>
+
+                <!-- Empty State Indicator -->
+                <div id="no-results" class="hidden bg-white rounded-2xl p-8 text-center border border-slate-200">
+                    <i class="fa-solid fa-user-slash text-4xl text-slate-300 mb-2"></i>
+                    <p class="text-slate-600 font-medium text-sm">No matching student records found.</p>
+                    <button onclick="resetSearch()" class="mt-3 text-xs text-nu-blue hover:underline font-semibold">Reset Search</button>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL 1: ADD NEW CARD DATA -->
+    <div id="add-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
+            <div class="bg-nu-navy px-6 py-4 flex items-center justify-between text-white">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-user-plus text-nu-accentGold"></i>
+                    <h3 class="font-montserrat font-bold text-base">Add New Student Card Data</h3>
+                </div>
+                <button onclick="closeAddModal()" class="text-blue-200 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-student-form" onsubmit="handleAddStudent(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Student ID *</label>
+                        <input type="text" id="input-id" required placeholder="e.g. 2025-0000006" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Year Level *</label>
+                        <select id="input-year" required onchange="updateSectionFormat()" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                            <option value="1st Year">1st Year (Section format 26x)</option>
+                            <option value="2nd Year" selected>2nd Year (Section format 25x)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name *</label>
+                    <input type="text" id="input-name" required placeholder="e.g. Maria Clara" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Program & Section *</label>
+                        <input type="text" id="input-program" required placeholder="e.g. BSCS-251" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1">1st Yr use 261, 262 | 2nd Yr use 251, 252</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                        <select id="input-status" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                            <option value="Active">Active / Installed</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Photo URL (Optional)</label>
+                    <input type="url" id="input-photo" placeholder="https://..." 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-nu-navy focus:outline-none">
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-nu-navy hover:bg-blue-900 text-white text-xs font-semibold rounded-lg shadow-sm transition">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ENLARGE ID PHOTO MODAL -->
+    <div id="enlarge-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4" onclick="closeEnlargeModal()">
+        <div class="bg-white rounded-2xl p-4 max-w-sm w-full text-center relative shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeEnlargeModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 text-lg">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+            <h4 id="enlarge-name" class="font-bold text-slate-800 text-base mb-1">Student Photo</h4>
+            <p id="enlarge-id" class="text-xs text-slate-500 mb-4">ID: 2025-0000001</p>
+            <img id="enlarge-image" src="" alt="Enlarged Photo" class="w-64 h-72 object-cover mx-auto rounded-xl border-2 border-nu-gold shadow-md">
+            <div class="mt-4">
+                <button onclick="closeEnlargeModal()" class="px-5 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900 transition">Close Preview</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Default Dataset populated as requested
+        let students = [
+            {
+                id: "2025-0000001",
+                name: "Juan De la Cruz",
+                program: "BSCS-251",
+                year: "2nd Year",
+                status: "Active",
+                photo: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80"
+            },
+            {
+                id: "2025-0000002",
+                name: "Angelina Jolie",
+                program: "BSTM-251",
+                year: "2nd Year",
+                status: "Active",
+                photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"
+            },
+            {
+                id: "2025-0000003",
+                name: "Maria Santos",
+                program: "BSPsych-251",
+                year: "2nd Year",
+                status: "Inactive",
+                photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80"
+            },
+            {
+                id: "2025-0000004",
+                name: "Mark Cruz",
+                program: "BSMedTech-251",
+                year: "2nd Year",
+                status: "Active",
+                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80"
+            },
+            {
+                id: "2025-0000005",
+                name: "John Lim",
+                program: "BSMMA-261",
+                year: "1st Year",
+                status: "Active",
+                photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80"
+            }
+        ];
+
+        let selectedStudentId = "2025-0000001";
+
+        // Initial Load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStudentCards(students);
+            updatePreviewCard(students[0]);
+        });
+
+        function renderStudentCards(dataList) {
+            const container = document.getElementById('student-cards-container');
+            const noResults = document.getElementById('no-results');
+            document.getElementById('total-count-badge').innerText = `${dataList.length} Records`;
+
+            if (dataList.length === 0) {
+                container.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            container.innerHTML = dataList.map(student => {
+                const isSelected = student.id === selectedStudentId;
+                const activeBadge = student.status === 'Active' 
+                    ? '<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300">Installed</span>'
+                    : '<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-300">Inactive</span>';
+
+                return `
+                <div onclick="selectStudent('${student.id}')" 
+                     class="bg-white hover:border-nu-navy transition-all duration-200 rounded-2xl p-4 shadow-sm border ${isSelected ? 'border-2 border-nu-navy ring-2 ring-blue-100 bg-blue-50/30' : 'border-slate-200'} cursor-pointer">
+                    
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        
+                        <!-- Col 1: Card ID & Status Pill -->
+                        <div class="flex items-center space-x-3 md:w-1/5">
+                            <div>
+                                <span class="font-mono font-bold text-slate-800 text-base block">${student.id}</span>
+                                <div class="mt-1">${activeBadge}</div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2: ID Photo Thumbnail with Enlarge click -->
+                        <div class="flex flex-col items-center justify-center md:w-1/5">
+                            <div class="relative group" onclick="event.stopPropagation(); enlargePhoto('${student.photo}', '${student.name}', '${student.id}')">
+                                <img src="${student.photo}" alt="${student.name}" class="w-16 h-20 object-cover rounded-lg border border-slate-300 shadow-sm group-hover:opacity-90 transition" onerror="this.src='https://placehold.co/100x120/00205B/FFFFFF?text=Photo'">
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center text-white text-[10px] transition">
+                                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                </div>
+                            </div>
+                            <span onclick="event.stopPropagation(); enlargePhoto('${student.photo}', '${student.name}', '${student.id}')" class="text-[10px] text-slate-400 hover:text-nu-navy font-medium mt-1 cursor-pointer">Click to Enlarge</span>
+                        </div>
+
+                        <!-- Col 3: Front Fields (Name, ID, Program/Section) -->
+                        <div class="space-y-1 md:w-2/5">
+                            <h3 class="font-montserrat font-bold text-slate-900 text-base">${student.name}</h3>
+                            <p class="font-mono text-xs text-slate-500 font-semibold">${student.id}</p>
+                            <p class="text-xs font-medium text-slate-700">Program & Sec: <span class="text-nu-navy font-bold">${student.program}</span></p>
+                            <p class="text-xs text-slate-500">Year Level: <span class="font-medium text-slate-700">${student.year}</span></p>
+                        </div>
+
+                        <!-- Col 4: Action Buttons (Deactivate/Activate, Send, Renew) & Edit -->
+                        <div class="flex items-center justify-between md:justify-end gap-3 md:w-2/5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100" onclick="event.stopPropagation()">
+                            <div class="flex flex-wrap gap-1.5">
+                                <button onclick="toggleStatus('${student.id}')" class="${student.status === 'Active' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition uppercase">
+                                    ${student.status === 'Active' ? 'DEACTIVATE' : 'ACTIVATE'}
+                                </button>
+                                <button onclick="triggerToast('Virtual ID card sent to ${student.name}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition uppercase">
+                                    SEND
+                                </button>
+                                <button onclick="triggerToast('ID Renewal requested for ${student.id}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition uppercase">
+                                    RENEW
+                                </button>
+                            </div>
+
+                            <div class="flex items-center space-x-3 ml-2">
+                                <button onclick="editStudent('${student.id}')" class="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                                    Edit
+                                </button>
+                                <input type="checkbox" class="w-4 h-4 rounded text-nu-navy border-slate-300 focus:ring-nu-navy cursor-pointer">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function selectStudent(id) {
+            selectedStudentId = id;
+            const student = students.find(s => s.id === id);
+            if (student) {
+                updatePreviewCard(student);
+                renderStudentCards(getCurrentFilteredList());
+            }
+        }
+
+        function updatePreviewCard(student) {
+            document.getElementById('card-preview-name').innerText = student.name;
+            document.getElementById('card-preview-id').innerText = student.id;
+            document.getElementById('card-preview-program').innerText = student.program;
+            document.getElementById('card-preview-year').innerText = student.year;
+            document.getElementById('card-preview-photo').src = student.photo;
+            document.getElementById('card-preview-signature').innerText = student.name;
+
+            const pill = document.getElementById('preview-status-pill');
+            if (student.status === 'Active') {
+                pill.innerText = 'Active';
+                pill.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+            } else {
+                pill.innerText = 'Inactive';
+                pill.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+            }
+        }
+
+        function getCurrentFilteredList() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            if (!query) return students;
+            return students.filter(s => 
+                s.name.toLowerCase().includes(query) || 
+                s.id.toLowerCase().includes(query) ||
+                s.program.toLowerCase().includes(query)
+            );
+        }
+
+        function handleSearch() {
+            const filtered = getCurrentFilteredList();
+            renderStudentCards(filtered);
+        }
+
+        function resetSearch() {
+            document.getElementById('search-input').value = '';
+            renderStudentCards(students);
+        }
+
+        function toggleStatus(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                student.status = student.status === 'Active' ? 'Inactive' : 'Active';
+                triggerToast(`Status for ${student.name} updated to ${student.status}`);
+                renderStudentCards(getCurrentFilteredList());
+                if (student.id === selectedStudentId) {
+                    updatePreviewCard(student);
+                }
+            }
+        }
+
+        function bulkSendCards() {
+            triggerToast(`All active Student ID Cards successfully queued for delivery!`);
+        }
+
+        // Enlarge Photo Logic
+        function enlargePhoto(photoUrl, name, id) {
+            document.getElementById('enlarge-image').src = photoUrl;
+            document.getElementById('enlarge-name').innerText = name;
+            document.getElementById('enlarge-id').innerText = `ID: ${id}`;
+            document.getElementById('enlarge-modal').classList.remove('hidden');
+        }
+
+        function closeEnlargeModal() {
+            document.getElementById('enlarge-modal').classList.add('hidden');
+        }
+
+        // Add Student Modal Logic
+        function openAddModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-student-form').reset();
+        }
+
+        function updateSectionFormat() {
+            const yr = document.getElementById('input-year').value;
+            const progInput = document.getElementById('input-program');
+            if (yr === '1st Year') {
+                progInput.placeholder = 'e.g. BSMMA-261';
+            } else {
+                progInput.placeholder = 'e.g. BSCS-251';
+            }
+        }
+
+        function handleAddStudent(e) {
+            e.preventDefault();
+            const newId = document.getElementById('input-id').value;
+            const newName = document.getElementById('input-name').value;
+            const newProgram = document.getElementById('input-program').value;
+            const newYear = document.getElementById('input-year').value;
+            const newStatus = document.getElementById('input-status').value;
+            const newPhoto = document.getElementById('input-photo').value || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&auto=format&fit=crop&q=80';
+
+            // Check if ID exists
+            if (students.some(s => s.id === newId)) {
+                triggerToast('Error: Student ID already exists!');
+                return;
+            }
+
+            const newObj = {
+                id: newId,
+                name: newName,
+                program: newProgram,
+                year: newYear,
+                status: newStatus,
+                photo: newPhoto
+            };
+
+            students.unshift(newObj);
+            selectedStudentId = newId;
+            renderStudentCards(students);
+            updatePreviewCard(newObj);
+            closeAddModal();
+            triggerToast(`New Card Data created for ${newName}`);
+        }
+
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                const updatedName = prompt("Edit Student Name:", student.name);
+                if (updatedName !== null && updatedName.trim() !== "") {
+                    student.name = updatedName.trim();
+                    const updatedProg = prompt("Edit Program & Section:", student.program);
+                    if (updatedProg !== null && updatedProg.trim() !== "") {
+                        student.program = updatedProg.trim();
+                    }
+                    renderStudentCards(getCurrentFilteredList());
+                    if (student.id === selectedStudentId) {
+                        updatePreviewCard(student);
+                    }
+                    triggerToast(`Updated record for ${student.id}`);
+                }
+            }
+        }
+
+        function triggerToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 pointer-events-auto border border-slate-700';
+            toast.innerHTML = `
+                <i class="fa-solid fa-circle-check text-nu-accentGold"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
